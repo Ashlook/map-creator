@@ -1,12 +1,12 @@
-import { Grid } from './class/Grid';
-import './index.css';
-import test1 from './img/test2_low.png';
-import test2 from './img/test_low.png';
+import test from './img/test_low.png';
+
+import './index.css'; 
+import { Tile } from './class/Tile';
 
 /**
  * Sie of the cell in pixel
  */
-const CELL_SIZE = 32;
+/* const CELL_SIZE = 32;
 
 const img1 = new Image(), img2 = new Image();
 
@@ -18,10 +18,10 @@ function draw(img) {
     board.context.drawImage(img, 0, 0);
 
     board.init();
-}
+} */
 
 window.onload = (e) => {
-  //affichage des images en dessous
+  /* //affichage des images en dessous
   img1.src = test1;
   img2.src = test2;
 
@@ -41,5 +41,17 @@ window.onload = (e) => {
 
   img1.onload = (e) => {
     draw(img1);
-  }
+  } */
+
+  const img1 = new Image();
+
+  img1.onload = e => {
+    console.log('image loaded !');
+    const myTile = new Tile(img1);
+    console.log('Tile :: ', myTile);
+
+    document.body.appendChild(myTile.image);
+  };
+
+  img1.src = test;
 }
