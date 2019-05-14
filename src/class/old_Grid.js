@@ -19,7 +19,7 @@ export class Grid {
   }
 
   init() {
-    const divCanvas = document.getElementById("canvas");
+    const divCanvas = document.getElementById('canvas');
     divCanvas.removeChild(document.getElementById('tutorial'));
     divCanvas.appendChild(this.canvas);
 
@@ -55,9 +55,9 @@ export class Grid {
     this.__addSide(x, y, 'S');
   }
 
-  addRightSide(x, y) {
+  /* addRightSide(x, y) {
 
-  }
+  } */
 
   clearOneCell(x, y) {
     this.context.clearRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);

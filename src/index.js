@@ -2,7 +2,7 @@ import test from './img/test_low.png';
 
 
 
-import './index.css'; 
+import './index.css';
 import { Tile } from './class/Tile';
 import { CanvasService } from './service/CanvasService';
 
@@ -23,26 +23,34 @@ function draw(img) {
     board.init();
 } */
 
-window.onload = (e) => {
+window.onload = () => {
   const img1 = new Image();
-  const canvas = document.createElement('canvas');
 
-  img1.onload = e => {
+  img1.onload = () => {
     console.log('image loaded !');
     const myTile = new Tile(img1);
     console.log('Tile :: ', myTile);
-    canvas.width = myTile.width;
-    canvas.height = myTile.height;
-    const canvasService = new CanvasService(canvas, {
-      lineWidth: 0.5,
+    const canvasService = new CanvasService(myTile, {
+      lineWidth: 1,
       lineCap: 'butt',
       lineJoin: 'miter',
       strokeStyle: 'red'
     });
 
+    canvasService.onupdate = (ev) => {
+      const info = document.getElementById('infos');
+      info.innerHTML = `
+      <h2>Cell info</h2>
+      ${(!ev)? `No Cell Selected`: JSON.stringify(ev)}
+    `;
+    };
+
+
+    console.log('CanvasService :: ', canvasService);
+
     const canvasContainer = document.getElementById('canvas');
-    canvasService.init(canvasContainer);
+    canvasService.attachTo(canvasContainer);
   };
 
   img1.src = test;
-}
+};

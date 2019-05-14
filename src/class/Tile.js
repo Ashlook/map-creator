@@ -1,6 +1,4 @@
-import { Grid } from './Grid'
-
-const CELL_SIZE = 32;
+import { Grid } from './Grid';
 
 /**
  * Permet de gérer une tuile, on peut générer une nouvelle tuile avec un image,
@@ -12,11 +10,12 @@ export class Tile {
    * @param {HTMLImageElement} image the image
    */
   constructor(image) {
+    this.CELL_SIZE = 32;
     this.image = image;
     this.width = this.image.naturalWidth;
     this.height = this.image.naturalWidth;
-    this.rows = this.width / CELL_SIZE;
-    this.cols = this.height / CELL_SIZE;
+    this.rows = this.width / this.CELL_SIZE;
+    this.cols = this.height / this.CELL_SIZE;
     if(!Number.isInteger(this.rows)) {
       throw new Error('Width must be a mutiple of 32px.');
     }
