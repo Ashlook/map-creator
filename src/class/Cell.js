@@ -13,7 +13,7 @@
 export class Cell {
   constructor() {
     /** @type {Terrain} */
-    this.terrainType = 'other';
+    this.terrainType = 'water';
     this.walkable = true;
     /** @type {Wall} */
     this.wall = {

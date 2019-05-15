@@ -6,6 +6,10 @@ import './index.css';
 import { Tile } from './class/Tile';
 import { CanvasService } from './service/CanvasService';
 
+import { ImageLoader } from './class/ImageLoader';
+
+//import { ImageLoader } from './class/ImageLoader';
+
 /**
  * Sie of the cell in pixel
  */
@@ -23,12 +27,12 @@ function draw(img) {
     board.init();
 } */
 
-window.onload = () => {
-  const img1 = new Image();
-
-  img1.onload = () => {
+window.onload = async () => {
+  try {
+    /** @type {Array<HTMLImageElement>} */
+    const myImg = (await ImageLoader.load([test]))[0];
     console.log('image loaded !');
-    const myTile = new Tile(img1);
+    const myTile = new Tile(myImg);
     console.log('Tile :: ', myTile);
     const canvasService = new CanvasService(myTile, {
       lineWidth: 1,
@@ -41,7 +45,7 @@ window.onload = () => {
       const info = document.getElementById('infos');
       info.innerHTML = `
       <h2>Cell info</h2>
-      ${(!ev)? `No Cell Selected`: JSON.stringify(ev)}
+      ${(!ev) ? `No Cell Selected` : JSON.stringify(ev)}
     `;
     };
 
@@ -50,7 +54,7 @@ window.onload = () => {
 
     const canvasContainer = document.getElementById('canvas');
     canvasService.attachTo(canvasContainer);
-  };
-
-  img1.src = test;
+  } catch (e) {
+    console.error(e);
+  }
 };

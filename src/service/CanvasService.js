@@ -1,4 +1,8 @@
+import { ImageLoader } from './../class/ImageLoader';
+
+//Assets
 import waterIcon from './../img/cell_water32.png';
+import grassIcon from './../img/cell_grass32.png';
 
 /**
  * @typedef {{lineWidth: number, strokeStyle: string | CanvasGradient | CanvasPattern, lineCap: CanvasLineCap, lineJoin: CanvasLineJoin}} ContextOptions Context Options.
@@ -34,12 +38,7 @@ export class CanvasService {
      * @type {((this: GlobalEventHandlers, ev: Event) => any) | null}
      */
     this.onupdate;
-
-    this.water = new Image(32, 32);
-    this.water.onload = () => {
-      this.update();
-    };
-    this.water.src = waterIcon;
+    this.assets;
     //EventHandler onmouseover
     this.canvas.onmousemove = (ev) => {
       const rect = this.canvas.getBoundingClientRect();
@@ -76,6 +75,7 @@ export class CanvasService {
       this.currentHoveredCell = null;
       this.update();
     };
+
   }
 
   /**
@@ -102,18 +102,27 @@ export class CanvasService {
   /**
    * Update the canvas
    */
-  update() {
-    //Clean the canvas
-    //Draw the selected(s) cell if any
-    //Draw the hovered cell if any
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    //Draw the image
-    this.context.drawImage(this.tile.image, 0, 0);
-    //Draw the grid and the detail for each cell
-    this.drawGrid();
+  async update() {
+    try {
+      //Load images if needed 
+      if (!this.assets) {
+        this.assets = await ImageLoader.load({waterIcon, grassIcon});
+      }
+      //Clean the canvas
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      //Draw the image
+      this.context.drawImage(this.tile.image, 0, 0);
+      //Draw the grid and the detail for each cell
+      this.drawGrid();
+
+      if (this.onupdate) {
+        this.onupdate(this.currentClickedCell);
+      }
+    } catch (e) {
+      console.log(e);
+    }
 
 
-    this.onupdate(this.currentClickedCell);
   }
 
   drawGrid() {
@@ -122,9 +131,9 @@ export class CanvasService {
       const xPx = x * this.tile.CELL_SIZE + this.context.lineWidth / 2;
       rows.map((cols, y) => {
         const yPx = y * this.tile.CELL_SIZE + this.context.lineWidth / 2;
-        this.context.strokeRect(xPx, yPx, sPx, sPx);
         //Test ajout terrain
         this._drawTerrain(x, y);
+        this.context.strokeRect(xPx, yPx, sPx, sPx);
 
         //A faire en dernier (derniere couche)
         //Si clicked
@@ -142,6 +151,14 @@ export class CanvasService {
     });
   }
 
+  /* async _loadIcon() {
+    try {
+      this.images = ImageLoader.load([waterIcon, grassIcon]);
+    } catch (e) {
+      console.error(e);
+    }
+  } */
+
   _drawTerrain(x, y) {
     this.context.save();
     switch (this.tile.cellGrid.grid[x][y].terrainType) {
@@ -153,8 +170,8 @@ export class CanvasService {
         this.context.fillText('?', x * this.tile.CELL_SIZE + this.tile.CELL_SIZE / 2, y * this.tile.CELL_SIZE + this.tile.CELL_SIZE / 2);
         break;
       case 'water':
-        this.context.globalAlpha = 0.5;
-        this.context.drawImage(this.water, x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        this.context.globalAlpha = 0.8;
+        this.context.drawImage(this.assets[1], x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
         break;
     }
     this.context.restore();
