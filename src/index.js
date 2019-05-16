@@ -1,4 +1,4 @@
-import test from './img/test_low.png';
+import test from './img/test2_low.png';
 
 
 
@@ -35,7 +35,7 @@ window.onload = async () => {
     const myTile = new Tile(myImg);
     console.log('Tile :: ', myTile);
     const canvasService = new CanvasService(myTile, {
-      lineWidth: 1,
+      lineWidth: 2,
       lineCap: 'butt',
       lineJoin: 'miter',
       strokeStyle: 'red'

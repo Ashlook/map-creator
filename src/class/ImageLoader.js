@@ -24,12 +24,6 @@ export class ImageLoader {
         })
       );
     });
-    return Promise.all(imgPromises).then((values) => {
-      const results = [];
-      imgSrc.map((source) => {
-
-      });
-      return values;
-    });
+    return Promise.all(imgPromises);
   }
 }

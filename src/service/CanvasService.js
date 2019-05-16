@@ -3,6 +3,12 @@ import { ImageLoader } from './../class/ImageLoader';
 //Assets
 import waterIcon from './../img/cell_water32.png';
 import grassIcon from './../img/cell_grass32.png';
+import rockIcon from './../img/cell_rock32.png';
+const icons = [
+  waterIcon,
+  grassIcon,
+  rockIcon
+];
 
 /**
  * @typedef {{lineWidth: number, strokeStyle: string | CanvasGradient | CanvasPattern, lineCap: CanvasLineCap, lineJoin: CanvasLineJoin}} ContextOptions Context Options.
@@ -37,8 +43,10 @@ export class CanvasService {
      * @param ev The current clicked cell.
      * @type {((this: GlobalEventHandlers, ev: Event) => any) | null}
      */
-    this.onupdate;
+    this.onupdate = null;
+    /** @type  */
     this.assets;
+
     //EventHandler onmouseover
     this.canvas.onmousemove = (ev) => {
       const rect = this.canvas.getBoundingClientRect();
@@ -83,10 +91,20 @@ export class CanvasService {
    */
   get hoveredCell() {
     if (this.mouseCol >= 0 && this.mouseRow >= 0) {
-      return this.tile.cellGrid.grid[this.mouseCol][this.mouseRow];
+      return this.getCell(this.mouseCol, this.mouseRow);
     } else {
       return null;
     }
+  }
+
+  /**
+   * 
+   * @param {number} x Position of the cell
+   * @param {number} y Position of the cell
+   * @return {import('./../class/Cell').Cell} The cell
+   */
+  getCell(x, y) {
+    return this.tile.cellGrid.grid[x][y];
   }
 
   /**
@@ -106,7 +124,7 @@ export class CanvasService {
     try {
       //Load images if needed 
       if (!this.assets) {
-        this.assets = await ImageLoader.load({waterIcon, grassIcon});
+        this.assets = await ImageLoader.load(icons);
       }
       //Clean the canvas
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -131,18 +149,19 @@ export class CanvasService {
       const xPx = x * this.tile.CELL_SIZE + this.context.lineWidth / 2;
       rows.map((cols, y) => {
         const yPx = y * this.tile.CELL_SIZE + this.context.lineWidth / 2;
-        //Test ajout terrain
+        //ajout terrain
         this._drawTerrain(x, y);
-        this.context.strokeRect(xPx, yPx, sPx, sPx);
+        //ajout "murs"
+        this._drawWalls(x, y);
 
-        //A faire en dernier (derniere couche)
+
         //Si clicked
-        if (this.currentClickedCell === this.tile.cellGrid.grid[x][y]) {
+        if (this.currentClickedCell === this.getCell(x, y)) {
           this.context.fillStyle = 'rgba(0, 255, 0, 0.2)';
           this.context.fillRect(xPx, yPx, sPx, sPx);
         }
         //Si hovered
-        if (this.currentHoveredCell === this.tile.cellGrid.grid[x][y]) {
+        if (this.currentHoveredCell === this.getCell(x, y)) {
           this.context.fillStyle = 'rgba(0, 0, 0, 0.2)';
           this.context.fillRect(xPx, yPx, sPx, sPx);
         }
@@ -151,29 +170,74 @@ export class CanvasService {
     });
   }
 
-  /* async _loadIcon() {
-    try {
-      this.images = ImageLoader.load([waterIcon, grassIcon]);
-    } catch (e) {
-      console.error(e);
-    }
-  } */
-
+  /**
+   * Draw the terrain icon on the cell
+   * @param {number} x Cell position
+   * @param {number} y Cell position
+   */
   _drawTerrain(x, y) {
     this.context.save();
-    switch (this.tile.cellGrid.grid[x][y].terrainType) {
+    switch (this.getCell(x, y).terrainType) {
       case 'other':
         this.context.textAlign = 'center';
         this.context.textBaseline = 'middle';
-        this.context.fillStyle = 'white';
+        this.context.fillStyle = 'lightgray';
         this.context.font = '12px arial';
-        this.context.fillText('?', x * this.tile.CELL_SIZE + this.tile.CELL_SIZE / 2, y * this.tile.CELL_SIZE + this.tile.CELL_SIZE / 2);
+        this.context.fillText('?', (x + 0.5) * this.tile.CELL_SIZE, (y + 0.5) * this.tile.CELL_SIZE);
         break;
       case 'water':
-        this.context.globalAlpha = 0.8;
-        this.context.drawImage(this.assets[1], x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        this.context.globalAlpha = 0.9;
+        this.context.drawImage(this.assets.find((img) => img.src.includes(waterIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        break;
+      case 'grass':
+        this.context.globalAlpha = 0.40;
+        this.context.drawImage(this.assets.find((img) => img.src.includes(grassIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        break;
+      case 'rock':
+        this.context.globalAlpha = 0.5;
+        this.context.drawImage(this.assets.find((img) => img.src.includes(rockIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
         break;
     }
+    this.context.restore();
+  }
+
+  /**
+   * Draw the walls on the cell
+   * @param {number} x Cell position
+   * @param {number} y Cell position
+   */
+  _drawWalls(x, y) {
+    this.context.save();
+    const wall = this.getCell(x, y).wall;
+    //NORTH
+    this.context.beginPath();
+    this.context.strokeStyle = (wall.N) ? 'red' : 'green';
+    this.context.moveTo(x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE + this.context.lineWidth / 2);
+    this.context.lineTo((x + 1) * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE + this.context.lineWidth / 2);
+    this.context.closePath();
+    this.context.stroke();
+    //SOUTH
+    this.context.beginPath();
+    this.context.strokeStyle = (wall.S) ? 'red' : 'green';
+    this.context.moveTo(x * this.tile.CELL_SIZE, (y + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2);
+    this.context.lineTo((x + 1) * this.tile.CELL_SIZE, (y + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2);
+    this.context.closePath();
+    this.context.stroke();
+    //EAST
+    this.context.beginPath();
+    this.context.strokeStyle = (wall.E) ? 'red' : 'green';
+    this.context.moveTo((x + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2, y * this.tile.CELL_SIZE);
+    this.context.lineTo((x + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2, (y + 1) * this.tile.CELL_SIZE);
+    this.context.closePath();
+    this.context.stroke();
+    //WEST
+    this.context.beginPath();
+    this.context.strokeStyle = (wall.W) ? 'red' : 'green';
+    this.context.moveTo(x * this.tile.CELL_SIZE + this.context.lineWidth / 2, y * this.tile.CELL_SIZE);
+    this.context.lineTo(x * this.tile.CELL_SIZE + this.context.lineWidth / 2, (y + 1) * this.tile.CELL_SIZE);
+    this.context.closePath();
+    this.context.stroke();
+
     this.context.restore();
   }
 
