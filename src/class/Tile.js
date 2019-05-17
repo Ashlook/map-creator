@@ -9,11 +9,15 @@ export class Tile {
    * Generate a new default Tile from the image, for now image height and width must be a multiple of 32px
    * @param {HTMLImageElement} image the image
    */
-  constructor(image) {
-    this.CELL_SIZE = 32;
+  constructor(image, rows, cols) {
     this.image = image;
-    this.width = this.image.naturalWidth;
-    this.height = this.image.naturalWidth;
+    this.CELL_SIZE = this.image.width / cols;
+    const checkIfSquare = this.image.height / rows;
+    if(this.CELL_SIZE != checkIfSquare) {
+      throw new Error('Cells must be square.');
+    }
+    this.width = this.image.width;
+    this.height = this.image.height;
     this.rows = this.width / this.CELL_SIZE;
     this.cols = this.height / this.CELL_SIZE;
     if(!Number.isInteger(this.rows)) {

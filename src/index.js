@@ -1,4 +1,4 @@
-import test from './img/test2_low.png';
+import test from './img/test_low.png';
 
 
 
@@ -8,31 +8,12 @@ import { CanvasService } from './service/CanvasService';
 
 import { ImageLoader } from './class/ImageLoader';
 
-//import { ImageLoader } from './class/ImageLoader';
-
-/**
- * Sie of the cell in pixel
- */
-/* const CELL_SIZE = 32;
-
-const img1 = new Image(), img2 = new Image();
-
-function draw(img) {
-    const gridXSize = img.width / CELL_SIZE;
-    const gridYSize = img.height / CELL_SIZE;
-
-    const board = new Grid(CELL_SIZE, gridXSize, gridYSize);
-    board.context.drawImage(img, 0, 0);
-
-    board.init();
-} */
-
 window.onload = async () => {
   try {
-    /** @type {Array<HTMLImageElement>} */
+    /** @type {HTMLImageElement} */
     const myImg = (await ImageLoader.load([test]))[0];
     console.log('image loaded !');
-    const myTile = new Tile(myImg);
+    const myTile = new Tile(myImg, 6, 6);
     console.log('Tile :: ', myTile);
     const canvasService = new CanvasService(myTile, {
       lineWidth: 2,

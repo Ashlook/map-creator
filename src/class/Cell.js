@@ -1,5 +1,5 @@
 /**
- * @typedef {'water'|'rock'|'concrete'|'grass'|'detail'|'other'} Terrain Possible type of terrain
+ * @typedef {'water'|'rock'|'concrete'|'grass'|'detail'|'unknow'} Terrain Possible type of terrain
  */
 
 /**
@@ -13,7 +13,7 @@
 export class Cell {
   constructor() {
     /** @type {Terrain} */
-    this.terrainType = 'other';
+    this.terrainType = 'unknow';
     this.walkable = true;
     /** @type {Wall} */
     this.wall = {

@@ -62,7 +62,7 @@ export class CanvasService {
 
       //Test
       const div = document.getElementById('images');
-      div.innerHTML = 'row : ' + this.mouseRow + ' ' + (ev.clientX - Math.floor(rect.left) - 1) + ' | col : ' + this.mouseCol + ' ' + (ev.clientY - Math.floor(rect.top) - 1);
+      div.innerHTML = 'row : ' + this.mouseRow + ' ' + (ev.clientX - Math.floor(rect.left)) + ' | col : ' + this.mouseCol + ' ' + (ev.clientY - Math.floor(rect.top));
     };
 
     //EventHandler onclick
@@ -70,8 +70,8 @@ export class CanvasService {
       //Si la cellule sur laquelle on click est la même que la précédente on la "declick"
       //Sinon on change la cell
       this.currentClickedCell = !(this.currentClickedCell === this.hoveredCell)
-        ? this.currentClickedCell = this.hoveredCell
-        : this.currentClickedCell = null;
+        ? this.hoveredCell
+        : null;
       this.update();
       //Test
       const div = document.getElementById('images');
@@ -90,7 +90,7 @@ export class CanvasService {
    * @returns The cell hovered by the mouse cursor
    */
   get hoveredCell() {
-    if (this.mouseCol >= 0 && this.mouseRow >= 0) {
+    if (this.mouseCol >= 0 && this.mouseRow >= 0 && this.mouseCol < this.tile.cellGrid.grid.length && this.mouseRow < this.tile.cellGrid.grid.length) {
       return this.getCell(this.mouseCol, this.mouseRow);
     } else {
       return null;
@@ -121,6 +121,7 @@ export class CanvasService {
    * Update the canvas
    */
   async update() {
+    //const tmp = performance.now();
     try {
       //Load images if needed 
       if (!this.assets) {
@@ -129,7 +130,7 @@ export class CanvasService {
       //Clean the canvas
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       //Draw the image
-      this.context.drawImage(this.tile.image, 0, 0);
+      this.context.drawImage(this.tile.image, 0, 0, this.tile.width, this.tile.height);
       //Draw the grid and the detail for each cell
       this.drawGrid();
 
@@ -139,16 +140,17 @@ export class CanvasService {
     } catch (e) {
       console.log(e);
     }
+    //console.log('Finished updating.', performance.now() - tmp + 'ms');
 
 
   }
 
   drawGrid() {
-    const sPx = this.tile.CELL_SIZE - this.context.lineWidth;
+    const sPx = this.tile.CELL_SIZE;
     this.tile.cellGrid.grid.map((rows, x) => {
-      const xPx = x * this.tile.CELL_SIZE + this.context.lineWidth / 2;
+      const xPx = x * this.tile.CELL_SIZE;
       rows.map((cols, y) => {
-        const yPx = y * this.tile.CELL_SIZE + this.context.lineWidth / 2;
+        const yPx = y * this.tile.CELL_SIZE;
         //ajout terrain
         this._drawTerrain(x, y);
         //ajout "murs"
@@ -177,26 +179,31 @@ export class CanvasService {
    */
   _drawTerrain(x, y) {
     this.context.save();
+
+    this.context.textAlign = 'center';
+    this.context.textBaseline = 'middle';
+    this.context.fillStyle = 'lightgray';
+    this.context.font = '12px arial';
+    this.context.translate((x + 0.5) * this.tile.CELL_SIZE, (y + 0.5) * this.tile.CELL_SIZE);
     switch (this.getCell(x, y).terrainType) {
-      case 'other':
-        this.context.textAlign = 'center';
-        this.context.textBaseline = 'middle';
-        this.context.fillStyle = 'lightgray';
-        this.context.font = '12px arial';
-        this.context.fillText('?', (x + 0.5) * this.tile.CELL_SIZE, (y + 0.5) * this.tile.CELL_SIZE);
+      case 'unknow':
+        this.context.fillText('?', 0, 0);
         break;
       case 'water':
-        this.context.globalAlpha = 0.9;
+        this.context.fillText('W', 0, 0);
+        /* this.context.globalAlpha = 0.9;
         this.context.drawImage(this.assets.find((img) => img.src.includes(waterIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
-        break;
+         */break;
       case 'grass':
-        this.context.globalAlpha = 0.40;
+        this.context.fillText('G', 0, 0);
+        /* this.context.globalAlpha = 0.40;
         this.context.drawImage(this.assets.find((img) => img.src.includes(grassIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
-        break;
+        */ break;
       case 'rock':
-        this.context.globalAlpha = 0.5;
+        this.context.fillText('R', 0, 0);
+        /* this.context.globalAlpha = 0.5;
         this.context.drawImage(this.assets.find((img) => img.src.includes(rockIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
-        break;
+         */break;
     }
     this.context.restore();
   }
@@ -210,35 +217,38 @@ export class CanvasService {
     this.context.save();
     const wall = this.getCell(x, y).wall;
     //NORTH
-    this.context.beginPath();
-    this.context.strokeStyle = (wall.N) ? 'red' : 'green';
-    this.context.moveTo(x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE + this.context.lineWidth / 2);
-    this.context.lineTo((x + 1) * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE + this.context.lineWidth / 2);
-    this.context.closePath();
-    this.context.stroke();
+    this.context.translate(x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+    this._drawWall(wall.N);
+    //EAST 
+    this.context.translate(this.tile.CELL_SIZE, 0);
+    this.context.rotate(Math.PI / 2);
+    this._drawWall(wall.E);
     //SOUTH
-    this.context.beginPath();
-    this.context.strokeStyle = (wall.S) ? 'red' : 'green';
-    this.context.moveTo(x * this.tile.CELL_SIZE, (y + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2);
-    this.context.lineTo((x + 1) * this.tile.CELL_SIZE, (y + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2);
-    this.context.closePath();
-    this.context.stroke();
-    //EAST
-    this.context.beginPath();
-    this.context.strokeStyle = (wall.E) ? 'red' : 'green';
-    this.context.moveTo((x + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2, y * this.tile.CELL_SIZE);
-    this.context.lineTo((x + 1) * this.tile.CELL_SIZE - this.context.lineWidth / 2, (y + 1) * this.tile.CELL_SIZE);
-    this.context.closePath();
-    this.context.stroke();
+    this.context.translate(this.tile.CELL_SIZE, 0);
+    this.context.rotate(Math.PI / 2);
+    this._drawWall(wall.S);
     //WEST
-    this.context.beginPath();
-    this.context.strokeStyle = (wall.W) ? 'red' : 'green';
-    this.context.moveTo(x * this.tile.CELL_SIZE + this.context.lineWidth / 2, y * this.tile.CELL_SIZE);
-    this.context.lineTo(x * this.tile.CELL_SIZE + this.context.lineWidth / 2, (y + 1) * this.tile.CELL_SIZE);
-    this.context.closePath();
-    this.context.stroke();
+    this.context.translate(this.tile.CELL_SIZE, 0);
+    this.context.rotate(Math.PI / 2);
+    this._drawWall(wall.W);
+
 
     this.context.restore();
+  }
+
+  _drawWall(wall) {
+    this.context.beginPath();
+    if (wall) {
+      this.context.fillStyle = 'red';
+      this.context.fillRect(0.5 * this.tile.CELL_SIZE - 8, 1, 16, 2);
+    } else {
+      this.context.fillStyle = 'green';
+      this.context.moveTo(0.5 * this.tile.CELL_SIZE, 1);
+      this.context.lineTo(0.5 * this.tile.CELL_SIZE + 4, 4);
+      this.context.lineTo(0.5 * this.tile.CELL_SIZE - 4, 4);
+      this.context.fill();
+    }
+    this.context.closePath();
   }
 
   /**
