@@ -13,28 +13,30 @@ window.onload = async () => {
     /** @type {HTMLImageElement} */
     const myImg = (await ImageLoader.load([test]))[0];
     console.log('image loaded !');
-    const myTile = new Tile(myImg, 6, 6);
-    console.log('Tile :: ', myTile);
-    const canvasService = new CanvasService(myTile, {
-      lineWidth: 2,
-      lineCap: 'butt',
-      lineJoin: 'miter',
-      strokeStyle: 'red'
-    });
+    if (myImg) {
+      const myTile = new Tile(myImg, 6, 6);
+      console.log('Tile :: ', myTile);
+      const canvasService = new CanvasService(myTile, {
+        lineCap: 'butt',
+        lineJoin: 'miter',
+        cellSize: 64
+      });
 
-    canvasService.onupdate = (ev) => {
-      const info = document.getElementById('infos');
-      info.innerHTML = `
+      canvasService.onupdate = (ev) => {
+        const info = document.getElementById('infos');
+        info.innerHTML = `
       <h2>Cell info</h2>
       ${(!ev) ? `No Cell Selected` : JSON.stringify(ev)}
     `;
-    };
+      };
 
 
-    console.log('CanvasService :: ', canvasService);
+      console.log('CanvasService :: ', canvasService);
 
-    const canvasContainer = document.getElementById('canvas');
-    canvasService.attachTo(canvasContainer);
+      const canvasContainer = document.getElementById('canvas');
+      canvasService.attachTo(canvasContainer);
+    }
+
   } catch (e) {
     console.error(e);
   }

@@ -11,7 +11,7 @@ const icons = [
 ];
 
 /**
- * @typedef {{lineWidth: number, strokeStyle: string | CanvasGradient | CanvasPattern, lineCap: CanvasLineCap, lineJoin: CanvasLineJoin}} ContextOptions Context Options.
+ * @typedef {{lineCap: CanvasLineCap, lineJoin: CanvasLineJoin, cellSize: number}} ContextOptions Context Options.
  */
 
 /**
@@ -25,6 +25,7 @@ export class CanvasService {
    * @param {ContextOptions} options 
    */
   constructor(tile, options = {}) {
+    this.CELL_SIZE = options.cellSize || 64;
     this.mouseCol = 0;
     this.mouseRow = 0;
     /** @type {import('./../class/Cell').Cell} */
@@ -34,10 +35,13 @@ export class CanvasService {
     this.tile = tile;
     /** @type {HTMLCanvasElement} */
     this.canvas = document.createElement('canvas');
-    this.canvas.width = this.tile.width;
-    this.canvas.height = this.tile.height;
+    //On veut qu'à l'affichage, chaque case fasse 64px. Il faut calculer la ratio à appliquer à la case
+    this.scale = this.CELL_SIZE / this.tile.CELL_SIZE;
+    this.canvas.width = this.tile.width * this.scale;
+    this.canvas.height = this.tile.height * this.scale;
     this.context = this.canvas.getContext('2d');
-    this._setOptions(options);
+    this.context.lineCap = options.lineCap || 'butt';
+    this.context.lineJoin = options.lineJoin || 'miter';
     /**
      * Fires when the canvas update.
      * @param ev The current clicked cell.
@@ -50,8 +54,8 @@ export class CanvasService {
     //EventHandler onmouseover
     this.canvas.onmousemove = (ev) => {
       const rect = this.canvas.getBoundingClientRect();
-      this.mouseCol = Math.floor((ev.clientX - Math.floor(rect.left) - 1) / this.tile.CELL_SIZE);
-      this.mouseRow = Math.floor((ev.clientY - Math.floor(rect.top) - 1) / this.tile.CELL_SIZE);
+      this.mouseCol = Math.floor((ev.clientX - Math.floor(rect.left) - 1) / this.CELL_SIZE);
+      this.mouseRow = Math.floor((ev.clientY - Math.floor(rect.top) - 1) / this.CELL_SIZE);
 
       //Si la cellule sur laquelle on se trouve est la même que la précédente on fait rien
       //Sinon on change la cell et on update le canvas
@@ -130,7 +134,7 @@ export class CanvasService {
       //Clean the canvas
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       //Draw the image
-      this.context.drawImage(this.tile.image, 0, 0, this.tile.width, this.tile.height);
+      this.context.drawImage(this.tile.image, 0, 0, this.tile.width * this.scale, this.tile.height * this.scale);
       //Draw the grid and the detail for each cell
       this.drawGrid();
 
@@ -146,11 +150,11 @@ export class CanvasService {
   }
 
   drawGrid() {
-    const sPx = this.tile.CELL_SIZE;
+    const sPx = this.CELL_SIZE;
     this.tile.cellGrid.grid.map((rows, x) => {
-      const xPx = x * this.tile.CELL_SIZE;
+      const xPx = x * this.CELL_SIZE;
       rows.map((cols, y) => {
-        const yPx = y * this.tile.CELL_SIZE;
+        const yPx = y * this.CELL_SIZE;
         //ajout terrain
         this._drawTerrain(x, y);
         //ajout "murs"
@@ -184,7 +188,7 @@ export class CanvasService {
     this.context.textBaseline = 'middle';
     this.context.fillStyle = 'lightgray';
     this.context.font = '12px arial';
-    this.context.translate((x + 0.5) * this.tile.CELL_SIZE, (y + 0.5) * this.tile.CELL_SIZE);
+    this.context.translate((x + 0.5) * this.CELL_SIZE, (y + 0.5) * this.CELL_SIZE);
     switch (this.getCell(x, y).terrainType) {
       case 'unknow':
         this.context.fillText('?', 0, 0);
@@ -192,17 +196,17 @@ export class CanvasService {
       case 'water':
         this.context.fillText('W', 0, 0);
         /* this.context.globalAlpha = 0.9;
-        this.context.drawImage(this.assets.find((img) => img.src.includes(waterIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        this.context.drawImage(this.assets.find((img) => img.src.includes(waterIcon)), x * this.CELL_SIZE, y * this.CELL_SIZE);
          */break;
       case 'grass':
         this.context.fillText('G', 0, 0);
         /* this.context.globalAlpha = 0.40;
-        this.context.drawImage(this.assets.find((img) => img.src.includes(grassIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        this.context.drawImage(this.assets.find((img) => img.src.includes(grassIcon)), x * this.CELL_SIZE, y * this.CELL_SIZE);
         */ break;
       case 'rock':
         this.context.fillText('R', 0, 0);
         /* this.context.globalAlpha = 0.5;
-        this.context.drawImage(this.assets.find((img) => img.src.includes(rockIcon)), x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+        this.context.drawImage(this.assets.find((img) => img.src.includes(rockIcon)), x * this.CELL_SIZE, y * this.CELL_SIZE);
          */break;
     }
     this.context.restore();
@@ -217,18 +221,18 @@ export class CanvasService {
     this.context.save();
     const wall = this.getCell(x, y).wall;
     //NORTH
-    this.context.translate(x * this.tile.CELL_SIZE, y * this.tile.CELL_SIZE);
+    this.context.translate(x * this.CELL_SIZE, y * this.CELL_SIZE);
     this._drawWall(wall.N);
     //EAST 
-    this.context.translate(this.tile.CELL_SIZE, 0);
+    this.context.translate(this.CELL_SIZE, 0);
     this.context.rotate(Math.PI / 2);
     this._drawWall(wall.E);
     //SOUTH
-    this.context.translate(this.tile.CELL_SIZE, 0);
+    this.context.translate(this.CELL_SIZE, 0);
     this.context.rotate(Math.PI / 2);
     this._drawWall(wall.S);
     //WEST
-    this.context.translate(this.tile.CELL_SIZE, 0);
+    this.context.translate(this.CELL_SIZE, 0);
     this.context.rotate(Math.PI / 2);
     this._drawWall(wall.W);
 
@@ -240,25 +244,14 @@ export class CanvasService {
     this.context.beginPath();
     if (wall) {
       this.context.fillStyle = 'red';
-      this.context.fillRect(0.5 * this.tile.CELL_SIZE - 8, 1, 16, 2);
+      this.context.fillRect(0.5 * this.CELL_SIZE - 16, 2, 32, 4);
     } else {
       this.context.fillStyle = 'green';
-      this.context.moveTo(0.5 * this.tile.CELL_SIZE, 1);
-      this.context.lineTo(0.5 * this.tile.CELL_SIZE + 4, 4);
-      this.context.lineTo(0.5 * this.tile.CELL_SIZE - 4, 4);
+      this.context.moveTo(0.5 * this.CELL_SIZE, 2);
+      this.context.lineTo(0.5 * this.CELL_SIZE + 8, 10);
+      this.context.lineTo(0.5 * this.CELL_SIZE - 8, 10);
       this.context.fill();
     }
     this.context.closePath();
-  }
-
-  /**
-   * Set some style options for the context
-   * @param {ContextOptions} options 
-   */
-  _setOptions(options) {
-    this.context.lineWidth = options.lineWidth || 1;
-    this.context.strokeStyle = options.strokeStyle || 'black';
-    this.context.lineCap = options.lineCap || 'butt';
-    this.context.lineJoin = options.lineJoin || 'miter';
   }
 }
