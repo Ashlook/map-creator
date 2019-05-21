@@ -4,25 +4,26 @@ import test from './img/test_low.png';
 
 import './index.css';
 import { Tile } from './class/Tile';
-import { CanvasService } from './service/CanvasService';
+import { Canvas } from './component/Canvas';
+import { App } from './component/App';
 
 import { ImageLoader } from './class/ImageLoader';
 
 window.onload = async () => {
   try {
+    new App();
     /** @type {HTMLImageElement} */
-    const myImg = (await ImageLoader.load([test]))[0];
-    console.log('image loaded !');
+    /* const myImg = null;//(await ImageLoader.load([test]))[0];
     if (myImg) {
       const myTile = new Tile(myImg, 6, 6);
       console.log('Tile :: ', myTile);
-      const canvasService = new CanvasService(myTile, {
+      const canvas = new Canvas(myTile, {
         lineCap: 'butt',
         lineJoin: 'miter',
         cellSize: 64
       });
 
-      canvasService.onupdate = (ev) => {
+      canvas.onclick = (ev) => {
         const info = document.getElementById('infos');
         info.innerHTML = `
       <h2>Cell info</h2>
@@ -31,11 +32,11 @@ window.onload = async () => {
       };
 
 
-      console.log('CanvasService :: ', canvasService);
+      console.log('CanvasService :: ', canvas);
 
       const canvasContainer = document.getElementById('canvas');
-      canvasService.attachTo(canvasContainer);
-    }
+      canvas.attachTo(canvasContainer);
+    } */
 
   } catch (e) {
     console.error(e);

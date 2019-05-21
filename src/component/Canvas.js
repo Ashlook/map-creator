@@ -1,4 +1,4 @@
-import { ImageLoader } from './../class/ImageLoader';
+import { ImageLoader } from '../class/ImageLoader';
 
 //Assets
 import waterIcon from './../img/cell_water32.png';
@@ -17,20 +17,20 @@ const icons = [
 /**
  * Creer un canvas, et lie à une Tile + option
  */
-export class CanvasService {
+export class Canvas {
 
   /**
    * 
-   * @param {import('./../class/Tile').Tile} tile The tile user for the render of the canvas
+   * @param {import('../class/Tile').Tile} tile The tile user for the render of the canvas
    * @param {ContextOptions} options 
    */
   constructor(tile, options = {}) {
     this.CELL_SIZE = options.cellSize || 64;
     this.mouseCol = 0;
     this.mouseRow = 0;
-    /** @type {import('./../class/Cell').Cell} */
+    /** @type {import('../class/Cell').Cell} */
     this.currentHoveredCell = null;
-    /** @type {import('./../class/Cell').Cell} */
+    /** @type {import('../class/Cell').Cell} */
     this.currentClickedCell = null;
     this.tile = tile;
     /** @type {HTMLCanvasElement} */
@@ -43,11 +43,20 @@ export class CanvasService {
     this.context.lineCap = options.lineCap || 'butt';
     this.context.lineJoin = options.lineJoin || 'miter';
     /**
+     * 
      * Fires when the canvas update.
      * @param ev The current clicked cell.
      * @type {((this: GlobalEventHandlers, ev: Event) => any) | null}
      */
     this.onupdate = null;
+    /**
+     * 
+     * Fires when the canvas is clicked.
+     * @param ev The current clicked cell.
+     * @type {((this: GlobalEventHandlers, ev: Event) => any) | null}
+     */
+    this.onclick = null;
+    
     /** @type  */
     this.assets;
 
@@ -70,13 +79,17 @@ export class CanvasService {
     };
 
     //EventHandler onclick
-    this.canvas.onclick = () => {
+    this.canvas.onclick = (e) => {
+      e.preventDefault();
       //Si la cellule sur laquelle on click est la même que la précédente on la "declick"
       //Sinon on change la cell
       this.currentClickedCell = !(this.currentClickedCell === this.hoveredCell)
         ? this.hoveredCell
         : null;
       this.update();
+      if(this.onclick) {
+        this.onclick(this.currentClickedCell);
+      }
       //Test
       const div = document.getElementById('images');
       div.innerHTML = 'Clicked at cell : { row: ' + this.mouseRow + ', col: ' + this.mouseCol + ' }';
@@ -105,7 +118,7 @@ export class CanvasService {
    * 
    * @param {number} x Position of the cell
    * @param {number} y Position of the cell
-   * @return {import('./../class/Cell').Cell} The cell
+   * @return {import('../class/Cell').Cell} The cell
    */
   getCell(x, y) {
     return this.tile.cellGrid.grid[x][y];
