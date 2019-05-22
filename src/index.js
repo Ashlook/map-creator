@@ -4,16 +4,18 @@ import test from './img/test_low.png';
 
 import './index.css';
 import { Tile } from './class/Tile';
-import { Canvas } from './component/Canvas';
+import { Canvas } from './component/Canvas/Canvas';
 import { App } from './component/App';
 
 import { ImageLoader } from './class/ImageLoader';
 
-window.onload = async () => {
+window.onload = () => {
   try {
-    new App();
+    const app = new App('Mon titre');
+    document.body.appendChild(app.tag);
+
     /** @type {HTMLImageElement} */
-    /* const myImg = null;//(await ImageLoader.load([test]))[0];
+    /* const myImg = (await ImageLoader.load([test]))[0];
     if (myImg) {
       const myTile = new Tile(myImg, 6, 6);
       console.log('Tile :: ', myTile);
@@ -26,16 +28,16 @@ window.onload = async () => {
       canvas.onclick = (ev) => {
         const info = document.getElementById('infos');
         info.innerHTML = `
-      <h2>Cell info</h2>
-      ${(!ev) ? `No Cell Selected` : JSON.stringify(ev)}
-    `;
+          <h2>Cell info</h2>
+          ${(!ev) ? `No Cell Selected` : JSON.stringify(ev)}
+        `;
       };
 
 
       console.log('CanvasService :: ', canvas);
 
       const canvasContainer = document.getElementById('canvas');
-      canvas.attachTo(canvasContainer);
+      canvas.attachTo(document.body);
     } */
 
   } catch (e) {
