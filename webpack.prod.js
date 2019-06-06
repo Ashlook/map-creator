@@ -6,10 +6,10 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
  * @type { import('webpack').Configuration }
  */
 const config = merge(common, {
-    mode: 'production',
-    plugins: [
-        new CleanWebpackPlugin()
-    ]
+  mode: 'production',
+  plugins: [
+    new CleanWebpackPlugin()
+  ]
 });
 
 module.exports = config;

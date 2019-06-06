@@ -17,7 +17,7 @@ export class Cell {
     this.walkable = true;
     /** @type {Wall} */
     this.wall = {
-      N: true,
+      N: false,
       E: false,
       S: false,
       W: false,

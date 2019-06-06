@@ -1,73 +1,47 @@
-import './App.css';
-import { Canvas } from './Canvas/Canvas';
-import { Tile } from '../class/Tile';
-import { ImageLoader } from '../class/ImageLoader';
-
-//Image de test
-import imageTest from '../img/test_low.png';
-
-export class App {
-  constructor(t = 'Mon application !') {
-    this.title = t;
-
-    //Composants de l'appli
-    /** @type {Canvas} */
-    this.canvasComp = null;
-    this.noImgComp = null;
-
-    /** @type {HTMLImageElement} */
-    this.img = new Image();
-    /** @type {Tile} */
-    this.tile = null;
-
-    this.render();
-
-    //test
-    this.initCanvas([imageTest]);
+import { Component } from '../class/Component';
+import { Header } from './Header/Header';
+import { Left } from './Left/Left';
+import { Middle } from './Middle/Middle';
+import { Right } from './Right/Right';
+export class MyApp extends Component {
+  constructor(){
+    super();
   }
 
-  render() {
-    console.log('render');
-    this.tag = document.createElement('app');
+  onInit() {
+    this.setStyle(`
+    :host {
+      display: flex;
+      flex-direction: column;
+      width: 1000px;
+      height: 600px;
+      border: 1px solid black;
+    }
+    main {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      height: 400px;
+      border-bottom: 1px solid black;
+    }
+    `);
 
-    const title = document.createElement('h1');
-    title.innerText = this.title;
+    this.addComponent(new Header('Mon titre'));
     const main = document.createElement('main');
-    const left = document.createElement('div');
-    left.id = 'left';
-    const canvas = document.createElement('div');
-    canvas.id = 'canvas';
-    const right = document.createElement('div');
-    right.id = 'right';
+    this.appLeft = this.addComponent(new Left(), main);
+    /** @type {Middle} */
+    this.appMiddle = this.addComponent(new Middle(), main);
+    this.appRight = this.addComponent(new Right(), main);
 
-    //Menu gauche
-    main.appendChild(left);
+    this.appLeft.addEventListener('addImage', (e) => {
+      console.log('img in '+this.tagName.toLowerCase(), e.detail);
+      this.appMiddle.createCanvas(e.detail);
+    });
 
-    //canvas
-    main.appendChild(canvas);
-    console.log('canvasComp :: ', this.canvasComp);
-    if(this.canvasComp) {
-      canvas.appendChild(this.canvasComp.HTMLElement);
-      console.log('if');
-    } else {
-      canvas.appendChild(document.createTextNode('BLABLA'));
-    }
 
-    //Menu droite
-    main.appendChild(right);
-
-    this.tag.appendChild(title);
-    this.tag.appendChild(main);
-  }
-
-  async initCanvas(imgSource) {
-    try {
-      this.img = (await ImageLoader.load(imgSource))[0];
-      this.tile = new Tile(this.img, 6, 6);
-      this.canvasComp = new Canvas(this.tile);
-      this.render();
-    } catch(e) {
-      console.error(e);
-    }
+    this.addChildNode(main);
   }
 }
+
+customElements.define('my-app', MyApp);

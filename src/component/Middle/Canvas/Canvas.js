@@ -1,12 +1,13 @@
-import { ImageLoader } from '../../class/ImageLoader';
-
-//css
-import './Canvas.css';
+import { ImageLoader } from '../../../class/ImageLoader';
 
 //Assets
+// @ts-ignore
 import waterIcon from './assets/cell_water32.png';
+// @ts-ignore
 import grassIcon from './assets/cell_grass32.png';
+// @ts-ignore
 import rockIcon from './assets/cell_rock32.png';
+import { Component } from '../../../class/Component';
 const icons = [
   waterIcon,
   grassIcon,
@@ -14,58 +15,56 @@ const icons = [
 ];
 
 /**
- * @typedef {{lineCap: CanvasLineCap, lineJoin: CanvasLineJoin, cellSize: number}} ContextOptions Context Options.
+ * @typedef {{lineCap?: CanvasLineCap, lineJoin?: CanvasLineJoin, cellSize: number}} ContextOptions Context Options.
  */
 
 /**
  * Creer un canvas, et lie à une Tile + option
  */
-export class Canvas {
-
+export class Canvas extends Component {
   /**
    * 
-   * @param {import('../../class/Tile').Tile} tile The tile user for the render of the canvas
+   * @param {import('../../../class/Tile').Tile} tile The tile user for the render of the canvas
    * @param {ContextOptions} options 
    */
-  constructor(tile, options = {}) {
-    this.CELL_SIZE = options.cellSize || 64;
+  constructor(tile, options = { cellSize: 64 }) {
+    super(tile, options);
+  }
+
+  onInit(tile, options) {
+    this.setStyle(`
+    :host {
+      cursor: pointer;
+    }`);
+    this.CELL_SIZE = options.cellSize;
     this.mouseCol = 0;
     this.mouseRow = 0;
-    /** @type {import('../../class/Cell').Cell} */
+    /** @type {import('../../../class/Cell').Cell} */
     this.currentHoveredCell = null;
-    /** @type {import('../../class/Cell').Cell} */
+    /** @type {import('../../../class/Cell').Cell} */
     this.currentClickedCell = null;
     this.tile = tile;
-    /** @type {HTMLCanvasElement} */
-    this.HTMLElement = document.createElement('canvas');
     //On veut qu'à l'affichage, chaque case fasse 64px. Il faut calculer la ratio à appliquer à la case
     this.scale = this.CELL_SIZE / this.tile.CELL_SIZE;
-    this.HTMLElement.width = this.tile.width * this.scale;
-    this.HTMLElement.height = this.tile.height * this.scale;
-    this.context = this.HTMLElement.getContext('2d');
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = this.tile.width * this.scale;
+    this.canvas.height = this.tile.height * this.scale;
+    this.context = this.canvas.getContext('2d');
     this.context.lineCap = options.lineCap || 'butt';
     this.context.lineJoin = options.lineJoin || 'miter';
     /**
      * 
      * Fires when the canvas update.
      * @param ev The current clicked cell.
-     * @type {((this: GlobalEventHandlers, ev: Event) => any) | null}
      */
     this.onupdate = null;
-    /**
-     * 
-     * Fires when the canvas is clicked.
-     * @param ev The current clicked cell.
-     * @type {((this: GlobalEventHandlers, ev: Event) => any) | null}
-     */
-    this.onclick = null;
 
     /** @type  */
     this.assets;
 
     //EventHandler onmouseover
-    this.HTMLElement.onmousemove = (ev) => {
-      const rect = this.HTMLElement.getBoundingClientRect();
+    this.canvas.onmousemove = (ev) => {
+      const rect = this.canvas.getBoundingClientRect();
       this.mouseCol = Math.floor((ev.clientX - Math.floor(rect.left) - 1) / this.CELL_SIZE);
       this.mouseRow = Math.floor((ev.clientY - Math.floor(rect.top) - 1) / this.CELL_SIZE);
 
@@ -78,7 +77,7 @@ export class Canvas {
     };
 
     //EventHandler onclick
-    this.HTMLElement.onclick = (e) => {
+    this.canvas.onclick = (e) => {
       e.preventDefault();
       //Si la cellule sur laquelle on click est la même que la précédente on la "declick"
       //Sinon on change la cell
@@ -92,11 +91,13 @@ export class Canvas {
     };
 
     //EventHandler onmouseleave
-    this.HTMLElement.onmouseleave = () => {
+    this.canvas.onmouseleave = () => {
       this.currentHoveredCell = null;
       this.update();
     };
 
+    this.addChildNode(this.canvas);
+    this.update();
   }
 
   /**
@@ -114,20 +115,10 @@ export class Canvas {
    * 
    * @param {number} x Position of the cell
    * @param {number} y Position of the cell
-   * @return {import('../../class/Cell').Cell} The cell
+   * @return {import('../../../class/Cell').Cell} The cell
    */
   getCell(x, y) {
     return this.tile.cellGrid.grid[x][y];
-  }
-
-  /**
-   * Attach the canvas to the parent element, removing it first, then updating it.
-   * @param {HTMLElement} container 
-   */
-  attachTo(container) {
-    this.HTMLElement.remove();
-    container.appendChild(this.HTMLElement);
-    this.update();
   }
 
   /**
@@ -141,7 +132,7 @@ export class Canvas {
         this.assets = await ImageLoader.load(icons);
       }
       //Clean the canvas
-      this.context.clearRect(0, 0, this.HTMLElement.width, this.HTMLElement.height);
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       //Draw the image
       this.context.drawImage(this.tile.image, 0, 0, this.tile.width * this.scale, this.tile.height * this.scale);
       //Draw the grid and the detail for each cell
@@ -264,3 +255,5 @@ export class Canvas {
     this.context.closePath();
   }
 }
+
+customElements.define('app-canvas', Canvas);
