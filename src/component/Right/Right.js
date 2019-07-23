@@ -15,6 +15,10 @@ export class Right extends Component {
       }
     `);
   }
+
+  onRender() {
+    
+  }
 }
 
 customElements.define('app-right', Right);

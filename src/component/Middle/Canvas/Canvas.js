@@ -72,7 +72,7 @@ export class Canvas extends Component {
       //Sinon on change la cell et on update le canvas
       if (!(this.currentHoveredCell === this.hoveredCell)) {
         this.currentHoveredCell = this.hoveredCell;
-        this.update();
+        this.render();
       }
     };
 
@@ -84,7 +84,7 @@ export class Canvas extends Component {
       this.currentClickedCell = !(this.currentClickedCell === this.hoveredCell)
         ? this.hoveredCell
         : null;
-      this.update();
+      this.render();
       if (this.onclick) {
         this.onclick(this.currentClickedCell);
       }
@@ -93,11 +93,10 @@ export class Canvas extends Component {
     //EventHandler onmouseleave
     this.canvas.onmouseleave = () => {
       this.currentHoveredCell = null;
-      this.update();
+      this.render();
     };
 
     this.addChildNode(this.canvas);
-    this.update();
   }
 
   /**
@@ -124,7 +123,7 @@ export class Canvas extends Component {
   /**
    * Update the canvas
    */
-  async update() {
+  async onRender() {
     //const tmp = performance.now();
     try {
       //Load images if needed 
@@ -138,6 +137,7 @@ export class Canvas extends Component {
       //Draw the grid and the detail for each cell
       this.drawGrid();
 
+      //TODO DISPATCH EVENT
       if (this.onupdate) {
         this.onupdate(this.currentClickedCell);
       }

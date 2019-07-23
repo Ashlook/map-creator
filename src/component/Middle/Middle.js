@@ -17,17 +17,24 @@ export class Middle extends Component {
         align-items: center;
         justify-content: center;
         background-color: #303030;
+        z-index: 1000;
       }
     `);
-    this.appNoImg = this.addChildNode(new NoImg());
+    this.appNoImg = this.addComponent(new NoImg());
     this.appCanvas = null;
+
+    this.showCanvas = false;
   }
 
   onRender() {
-    if(this.appCanvas) {
-      this.addChildNode(this.appCanvas);
+    if(this.showCanvas) {
+      this.appNoImg.style.display = 'none';
+      this.appCanvas.style.display = 'block';
     } else {
-      this.addChildNode(this.appNoImg);
+      if(this.appCanvas) {
+        this.appCanvas.style.display = 'none';
+      }
+      this.appNoImg.style.display = 'block';
     }
   }
 
@@ -36,8 +43,19 @@ export class Middle extends Component {
    * @param {HTMLImageElement} img The image to load into canvas
    */
   createCanvas(img) {
+    //Si on a deja un canvas, on le supprime
+    if(this.appCanvas) {
+      this.removeComponent(this.appCanvas);
+    }
     const tile = new Tile(img, 6, 6);
     this.appCanvas = new Canvas(tile);
+    this.addComponent(this.appCanvas);
+    this.showCanvas = true;
+    this.render();
+  }
+
+  toggleCanvas() {
+    this.showCanvas = !this.showCanvas;
     this.render();
   }
 

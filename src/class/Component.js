@@ -14,13 +14,12 @@ export class Component extends HTMLElement {
     /** @type {Array<Component>} */
     this.childComponents = [];
 
-    /** @type {HTMLElement} */
     this._template = document.createElement('div');
 
     this._style = document.createElement('style');
     this._style.appendChild(document.createTextNode(''));
     
-    this._template.appendChild(this._style);
+    this.shadowRoot.append(this._style);
 
     this.init(...args);
 
@@ -34,7 +33,7 @@ export class Component extends HTMLElement {
    */
   init(...args) {
     this.onInit(...args);
-    this.shadowRoot.append(...this._template.childNodes);
+    this.render();
   }
 
   /**
@@ -52,13 +51,8 @@ export class Component extends HTMLElement {
    * @private
    */
   render() {
-    this.clearTemplate();
-    while(this.shadowRoot.lastElementChild.tagName !== 'STYLE') {
-      this.shadowRoot.removeChild(this.shadowRoot.lastElementChild);
-    }
     this.onRender();
     this.childComponents.map((comp) => comp.render());
-    this.shadowRoot.append(...this._template.childNodes);
   }
 
   /**
@@ -71,11 +65,11 @@ export class Component extends HTMLElement {
 
   /**
    * 
-   * @param {Component} comp
-   * @param {HTMLElement} parentNode
+   * @param {Component} comp The component to add
+   * @param {HTMLElement} parentNode the parent node, by default the root node
    * @returns {Component} The component
    */
-  addComponent(comp, parentNode = this._template) {
+  addComponent(comp, parentNode = this.shadowRoot) {
     this.childComponents.push(comp);
     parentNode.appendChild(comp);
     return comp;
@@ -83,18 +77,38 @@ export class Component extends HTMLElement {
 
   /**
    * 
+   * @param {Component} comp The component to remove
+   * @returns {Component} The deleted component
+   */
+  removeComponent(comp) {
+    this.childComponents.splice(this.childComponents.indexOf(comp));
+    comp.remove();
+    return comp;
+  }
+
+  /**
+   * 
    * @param {HTMLElement} node The node to append
-   * @returns {Component} The Component
+   * @returns {HTMLElement} The added element
    */
   addChildNode(node) {
-    this._template.appendChild(node);
+    this.shadowRoot.appendChild(node);
     return node;
   }
 
-  clearTemplate() {
-    this.childComponents = [];
-    while(this._template.firstChild) {
-      this._template.removeChild(this._template.firstChild);
+  /**
+   * 
+   * @param {HTMLElement} node The node to remove
+   * @returns {HTMLElement} The removed element
+   */
+  removeChildNode(node) {
+    this.shadowRoot.removeChild(node);
+    return node;
+  }
+
+  clearShadowroot() {
+    while(this.shadowRoot.firstElementChild) {
+      this.shadowRoot.firstElementChild.remove();
     }
   }
 

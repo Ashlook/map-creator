@@ -35,12 +35,18 @@ export class MyApp extends Component {
     this.appRight = this.addComponent(new Right(), main);
 
     this.appLeft.addEventListener('addImage', (e) => {
-      console.log('img in '+this.tagName.toLowerCase(), e.detail);
       this.appMiddle.createCanvas(e.detail);
+    });
+    this.appLeft.addEventListener('delImage', (e) => {
+      this.appMiddle.toggleCanvas();
     });
 
 
     this.addChildNode(main);
+  }
+
+  onRender() {
+
   }
 }
 

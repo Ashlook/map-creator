@@ -10,7 +10,11 @@ export class NoImg extends Component {
     :host {
       color: #CCCCCC;
     }`);
-    this.addChildNode(document.createTextNode('No image selected !'));
+    this.addChildNode(document.createTextNode('No Canvas !'));
+  }
+
+  onRender() {
+
   }
 }
 

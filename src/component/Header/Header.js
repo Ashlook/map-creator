@@ -20,7 +20,11 @@ export class Header extends Component {
 
     const h1 = document.createElement('h1');
     h1.appendChild(document.createTextNode(title));
-    this._template.appendChild(h1);
+    this.addChildNode(h1);
+  }
+
+  onRender() {
+
   }
 
 }

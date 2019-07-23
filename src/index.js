@@ -1,11 +1,11 @@
 import './index.scss';
-import './component/App';
+import { MyApp } from './component/App';
 
-window.onload = () => {
+window.addEventListener('load', () => {
   try {
-    document.body.appendChild(document.createElement('my-app'));
+    document.body.appendChild(new MyApp());
 
   } catch (e) {
     console.error(e);
   }
-};
+});
